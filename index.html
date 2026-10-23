@@ -406,7 +406,7 @@
       <a href="https://t.me/virus_play_bot/app?startapp=openRouletteMain_inviteCodeAsy0Of16Ipb9DCmJ_adSegmentCode=freespininlineshare44" class="btn btn-virus" data-service="virus" target="_blank" rel="noopener noreferrer">
         Забрать NFT
       </a>
-      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Переходов:</span> <strong id="count-virus">0</strong></div>
+      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Всего переходов:</span> <strong id="count-virus">0</strong></div>
     </div>
 
     <!-- RubUp -->
@@ -423,7 +423,7 @@
       <a href="https://t.me/rubup?startapp=r_1030028355_662990" class="btn btn-rubup" data-service="rubup" target="_blank" rel="noopener noreferrer">
         Забрать NFT
       </a>
-      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Переходов:</span> <strong id="count-rubup">0</strong></div>
+      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Всего переходов:</span> <strong id="count-rubup">0</strong></div>
     </div>
 
     <!-- Starsgram -->
@@ -434,47 +434,81 @@
         </div>
         <div class="info">
           <h2>Starsgram</h2>
-          <p>VPN за копейки + звёзды за задания + NFT</p>
+          <p>VPN за копейки + звёзды за задания + VPN</p>
         </div>
       </div>
       <a href="https://t.me/starsgram_official_bot?start=ref_1030028355" class="btn btn-stars" data-service="starsgram" target="_blank" rel="noopener noreferrer">
         Забрать
       </a>
-      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Переходов:</span> <strong id="count-starsgram">0</strong></div>
+      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Всего переходов:</span> <strong id="count-starsgram">0</strong></div>
     </div>
   </div>
 
   <script>
-    // Счётчик хранится в браузере посетителя. Для общего счётчика всех пользователей
-    // нужен сервер или аналитика: статический HTML не может объединять данные устройств.
+    // Общие счётчики для всех посетителей через публичный CounterAPI.
+    // Каждая кнопка имеет отдельный ключ; секретные ключи в браузере не используются.
     (function () {
+      const namespace = 'virus-friends-public-site';
       const services = ['virus', 'rubup', 'starsgram'];
-      const keyFor = (service) => 'virusFriends_clicks_' + service;
+      const base = 'https://counterapi.com/api/' + encodeURIComponent(namespace) + '/click/';
+      const nodeFor = (service) => document.getElementById('count-' + service);
+      const formatCount = (value) => Number(value || 0).toLocaleString('ru-RU');
 
-      function renderCounts() {
-        services.forEach((service) => {
-          let count = 0;
-          try { count = Number(localStorage.getItem(keyFor(service)) || 0); } catch (_) {}
-          const node = document.getElementById('count-' + service);
-          if (node) node.textContent = count.toLocaleString('ru-RU');
+      async function readCount(service) {
+        const response = await fetch(base + encodeURIComponent(service) + '?readOnly=true', {
+          method: 'GET', cache: 'no-store', mode: 'cors'
         });
+        if (!response.ok) throw new Error('Counter read failed: ' + response.status);
+        const data = await response.json();
+        if (typeof data.value !== 'number' && typeof data.value !== 'string') {
+          throw new Error('Unexpected counter response');
+        }
+        return Number(data.value);
+      }
+
+      async function refreshCount(service) {
+        const node = nodeFor(service);
+        if (!node) return;
+        try {
+          const count = await readCount(service);
+          node.textContent = formatCount(count);
+          node.title = 'Общее количество переходов всех посетителей';
+        } catch (error) {
+          node.title = 'Не удалось загрузить общий счётчик. Проверьте подключение к интернету.';
+        }
       }
 
       document.querySelectorAll('a[data-service]').forEach((link) => {
         link.addEventListener('click', () => {
           const service = link.dataset.service;
-          try {
-            const key = keyFor(service);
-            const count = Number(localStorage.getItem(key) || 0) + 1;
-            localStorage.setItem(key, String(count));
-            const node = document.getElementById('count-' + service);
-            if (node) node.textContent = count.toLocaleString('ru-RU');
-          } catch (_) {
-            // Если хранилище браузера отключено, переход по ссылке всё равно работает.
-          }
+          if (!services.includes(service)) return;
+          const node = nodeFor(service);
+          if (node) node.title = 'Обновляем общее количество переходов…';
+          // Запрос увеличения отправляется в общий сервис; переход по ссылке не блокируется.
+          fetch(base + encodeURIComponent(service), {
+            method: 'GET', cache: 'no-store', mode: 'cors', keepalive: true
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error('Counter increment failed: ' + response.status);
+              return response.json();
+            })
+            .then((data) => {
+              if (node && data && data.value !== undefined) {
+                node.textContent = formatCount(data.value);
+                node.title = 'Общее количество переходов всех посетителей';
+              } else {
+                refreshCount(service);
+              }
+            })
+            .catch(() => {
+              if (node) node.title = 'Не удалось обновить общий счётчик. Переход по ссылке выполнен, если сервис назначения доступен.';
+            });
         });
       });
-      renderCounts();
+
+      services.forEach(refreshCount);
+      // Подтягиваем общие значения у посетителей, которые уже держат страницу открытой.
+      window.setInterval(() => services.forEach(refreshCount), 30000);
     })();
   </script>
 
