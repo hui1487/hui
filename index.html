@@ -351,6 +351,33 @@
 
     @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms !important;animation-iteration-count:1 !important;scroll-behavior:auto !important;transition-duration:.01ms !important; } }
 
+
+
+    /* Локальный счётчик переходов под каждой кнопкой */
+    .click-counter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin: 10px 0 1px;
+      min-height: 18px;
+      color: rgba(211, 222, 239, 0.78);
+      font-size: 12px;
+      letter-spacing: 0.15px;
+      text-align: center;
+    }
+
+    .click-counter i {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .click-counter strong {
+      color: #fff;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
   </style>
 </head>
 <body>
@@ -376,9 +403,10 @@
           <p>Бесплатные NFT</p>
         </div>
       </div>
-      <a href="https://t.me/virus_play_bot/app?startapp=openRouletteMain_inviteCodeAsy0Of16Ipb9DCmJ_adSegmentCode=freespininlineshare44" class="btn btn-virus" target="_blank">
+      <a href="https://t.me/virus_play_bot/app?startapp=openRouletteMain_inviteCodeAsy0Of16Ipb9DCmJ_adSegmentCode=freespininlineshare44" class="btn btn-virus" data-service="virus" target="_blank" rel="noopener noreferrer">
         Забрать NFT
       </a>
+      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Переходов:</span> <strong id="count-virus">0</strong></div>
     </div>
 
     <!-- RubUp -->
@@ -392,9 +420,10 @@
           <p>Бесплатный NFT</p>
         </div>
       </div>
-      <a href="https://t.me/rubup?startapp=r_1030028355_662990" class="btn btn-rubup" target="_blank">
+      <a href="https://t.me/rubup?startapp=r_1030028355_662990" class="btn btn-rubup" data-service="rubup" target="_blank" rel="noopener noreferrer">
         Забрать NFT
       </a>
+      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Переходов:</span> <strong id="count-rubup">0</strong></div>
     </div>
 
     <!-- Starsgram -->
@@ -405,13 +434,49 @@
         </div>
         <div class="info">
           <h2>Starsgram</h2>
-          <p>VPN за копейки + звёзды за задния + NFT</p>
+          <p>VPN за копейки + звёзды за задания + NFT</p>
         </div>
       </div>
-      <a href="https://t.me/starsgram_official_bot?start=ref_1030028355" class="btn btn-stars" target="_blank">
-        Забрать 
+      <a href="https://t.me/starsgram_official_bot?start=ref_1030028355" class="btn btn-stars" data-service="starsgram" target="_blank" rel="noopener noreferrer">
+        Забрать
       </a>
+      <div class="click-counter" aria-live="polite"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Переходов:</span> <strong id="count-starsgram">0</strong></div>
     </div>
   </div>
+
+  <script>
+    // Счётчик хранится в браузере посетителя. Для общего счётчика всех пользователей
+    // нужен сервер или аналитика: статический HTML не может объединять данные устройств.
+    (function () {
+      const services = ['virus', 'rubup', 'starsgram'];
+      const keyFor = (service) => 'virusFriends_clicks_' + service;
+
+      function renderCounts() {
+        services.forEach((service) => {
+          let count = 0;
+          try { count = Number(localStorage.getItem(keyFor(service)) || 0); } catch (_) {}
+          const node = document.getElementById('count-' + service);
+          if (node) node.textContent = count.toLocaleString('ru-RU');
+        });
+      }
+
+      document.querySelectorAll('a[data-service]').forEach((link) => {
+        link.addEventListener('click', () => {
+          const service = link.dataset.service;
+          try {
+            const key = keyFor(service);
+            const count = Number(localStorage.getItem(key) || 0) + 1;
+            localStorage.setItem(key, String(count));
+            const node = document.getElementById('count-' + service);
+            if (node) node.textContent = count.toLocaleString('ru-RU');
+          } catch (_) {
+            // Если хранилище браузера отключено, переход по ссылке всё равно работает.
+          }
+        });
+      });
+      renderCounts();
+    })();
+  </script>
+
 </body>
 </html>
