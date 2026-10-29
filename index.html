@@ -19,21 +19,35 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;bac
 /* LEAVES */
 .leaf-rain{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .leaf{
-  position:absolute;top:-30px;
-  width:12px;height:12px;
-  background:#d4782a;
-  border-radius:2px 12px 2px 12px;
-  opacity:.7;
-  animation:fall linear infinite;
-  will-change:transform;
+  position:absolute;
+  top:-40px;
+  left:0;
+  width:18px;
+  height:18px;
+  background:#e8903a;
+  border-radius:2px 14px 2px 14px;
+  opacity:.9;
+  animation-name:fall;
+  animation-timing-function:linear;
+  animation-iteration-count:infinite;
+  animation-fill-mode:both;
+  transform:translate3d(0,0,0);
+  -webkit-transform:translate3d(0,0,0);
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
 }
-.leaf:nth-child(odd){background:#c9a035;border-radius:12px 2px}
-.leaf:nth-child(3n){background:#b85a20}
-.leaf:nth-child(5n){background:#e09040}
+.leaf:nth-child(odd){background:#dbb040;border-radius:14px 2px}
+.leaf:nth-child(3n){background:#d06828}
+.leaf:nth-child(5n){background:#f0a050}
 @keyframes fall{
-  0%{transform:translateY(0) rotate(0deg);opacity:0}
-  8%{opacity:.7}
-  100%{transform:translateY(105vh) rotate(720deg);opacity:0}
+  0%{-webkit-transform:translate3d(0,0,0) rotate(0deg);transform:translate3d(0,0,0) rotate(0deg);opacity:0}
+  5%{opacity:.9}
+  100%{-webkit-transform:translate3d(0,110vh,0) rotate(720deg);transform:translate3d(0,110vh,0) rotate(720deg);opacity:0}
+}
+@-webkit-keyframes fall{
+  0%{-webkit-transform:translate3d(0,0,0) rotate(0deg);opacity:0}
+  5%{opacity:.9}
+  100%{-webkit-transform:translate3d(0,110vh,0) rotate(720deg);opacity:0}
 }
 
 .shell{position:relative;z-index:2;width:min(100% - 36px,920px);margin:0 auto;padding:26px 0 48px}
@@ -96,6 +110,7 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
   .card-copy h3{font-size:22px}
   .service-icon{width:66px;height:66px;flex-basis:66px}
   h1,.hero p,.card-copy h3{animation:none}
+  .leaf{opacity:.9}
 }
 @media(max-width:360px){
   .shell{width:calc(100% - 22px)}
@@ -104,8 +119,8 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
   .service-icon{width:60px;height:60px;flex-basis:60px;border-radius:17px}
 }
 @media(prefers-reduced-motion:reduce){
-  .leaf{animation-duration:30s !important}
   h1,.hero p,.card-copy h3{animation:none}
+  .leaf{opacity:.9}
 }
 </style>
 </head>
@@ -158,21 +173,35 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
 </main>
 <script>
 (function(){
-  var box = document.getElementById('leaves');
-  if(!box) return;
-  var mobile = window.innerWidth < 700;
-  var count = mobile ? 16 : 26;
-  for(var i = 0; i < count; i++){
-    var el = document.createElement('div');
-    el.className = 'leaf';
-    el.style.left = (Math.random() * 100) + '%';
-    var s = 9 + Math.random() * 10;
-    el.style.width = s + 'px';
-    el.style.height = (s * 0.85) + 'px';
-    el.style.animationDuration = (11 + Math.random() * 16) + 's';
-    el.style.animationDelay = (-Math.random() * 22) + 's';
-    box.appendChild(el);
+  function spawnLeaves(){
+    var box = document.getElementById('leaves');
+    if(!box) return;
+    // clear any previous
+    box.innerHTML = '';
+    var count = 36;
+    for(var i = 0; i < count; i++){
+      var el = document.createElement('div');
+      el.className = 'leaf';
+      el.style.left = (Math.random() * 100) + '%';
+      var s = 11 + Math.random() * 14;
+      el.style.width = s + 'px';
+      el.style.height = (s * 0.8) + 'px';
+      var dur = 9 + Math.random() * 14;
+      var delay = -(Math.random() * 20);
+      el.style.animationDuration = dur + 's';
+      el.style.webkitAnimationDuration = dur + 's';
+      el.style.animationDelay = delay + 's';
+      el.style.webkitAnimationDelay = delay + 's';
+      box.appendChild(el);
+    }
   }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', spawnLeaves);
+  } else {
+    spawnLeaves();
+  }
+  // retry once after short delay (helps some mobile browsers)
+  setTimeout(spawnLeaves, 300);
 })();
 </script>
 </body>
