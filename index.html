@@ -431,6 +431,9 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
   .np-time{min-width:21px;font-size:8px}
 }
 
+
+/* Убираем подсказку с обложки полностью */
+.np-hint,#npHint{display:none!important;visibility:hidden!important;pointer-events:none!important}
 </style>
 </head>
 <body>
@@ -453,7 +456,7 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
   <section class="np" id="np" aria-label="Сейчас играет" aria-live="off">
     <div class="np-glass" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i><i class="g5"></i></div>
     <div class="np-inner">
-      <div class="np-cover"><img id="npImg" alt="" draggable="false"><div class="np-hint" id="npHint">🔊 Нажми, чтобы включить звук</div></div>
+      <div class="np-cover"><img id="npImg" alt="" draggable="false"><div class="np-hint" id="npHint" aria-hidden="true"></div></div>
       <div class="np-meta"><div class="np-title" id="npTitle"></div><div class="np-artist" id="npArtist"></div></div>
       <div class="np-bubble" role="progressbar" aria-label="Прогресс трека" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="npBubble">
         <span class="np-time" id="npCur">0:00</span>
@@ -702,14 +705,44 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
   /* ---------- Обложка-заглушка ---------- */
   function hash(s){ var h=0; for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return Math.abs(h); }
   function fallbackCover(seed){
-    var h=hash(seed)%360, c=document.createElement('canvas'); c.width=c.height=600;
-    var g=c.getContext('2d'), gr=g.createLinearGradient(0,0,600,600);
-    gr.addColorStop(0,'hsl('+h+',78%,58%)'); gr.addColorStop(1,'hsl('+((h+50)%360)+',80%,32%)');
+    /* Уникальная обложка для каждого трека: только чёрный, графитовый и оранжевый. */
+    var h=hash(String(seed||'track'));
+    var c=document.createElement('canvas'); c.width=c.height=600;
+    var g=c.getContext('2d');
+    var rand=(function(x){return function(){x=(x*1664525+1013904223)>>>0;return x/4294967296;};})(h||17);
+    var gr=g.createLinearGradient(0,0,600,600);
+    gr.addColorStop(0,'#080808');
+    gr.addColorStop(.48,rand()>.5?'#321707':'#211006');
+    gr.addColorStop(1,'#f07818');
     g.fillStyle=gr; g.fillRect(0,0,600,600);
-    g.fillStyle='rgba(255,255,255,.14)'; g.beginPath(); g.arc(470,130,190,0,7); g.fill();
-    g.fillStyle='rgba(0,0,0,.16)'; g.beginPath(); g.arc(110,500,230,0,7); g.fill();
-    g.fillStyle='rgba(255,255,255,.92)'; g.font='bold 260px sans-serif'; g.textAlign='center'; g.textBaseline='middle';
-    g.fillText('♪',300,320);
+
+    /* Мягкое оранжевое свечение и стеклянные формы */
+    var glow=g.createRadialGradient(300+rand()*180-90,280+rand()*180-90,12,330,300,440);
+    glow.addColorStop(0,'rgba(255,153,48,.82)');
+    glow.addColorStop(.45,'rgba(255,103,12,.25)');
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=glow; g.fillRect(0,0,600,600);
+
+    for(var i=0;i<7;i++){
+      var x=rand()*720-60, y=rand()*720-60, r=55+rand()*190;
+      g.beginPath(); g.arc(x,y,r,0,Math.PI*2);
+      g.fillStyle=i%2?'rgba(255,255,255,.045)':'rgba(255,135,35,.13)'; g.fill();
+      g.beginPath(); g.arc(x-r*.12,y-r*.12,r*.82,Math.PI*1.05,Math.PI*1.8);
+      g.strokeStyle='rgba(255,190,120,.20)'; g.lineWidth=2+rand()*5; g.stroke();
+    }
+    g.save();
+    g.translate(300,300); g.rotate((rand()-.5)*.4);
+    g.fillStyle='rgba(0,0,0,.25)'; g.beginPath(); g.roundRect(-128,-128,256,256,46); g.fill();
+    g.strokeStyle='rgba(255,196,130,.34)'; g.lineWidth=2; g.stroke();
+    g.fillStyle='#fff1df'; g.font='bold 210px sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+    g.shadowColor='rgba(255,112,20,.6)'; g.shadowBlur=30; g.fillText('♪',0,8);
+    g.restore();
+
+    /* Короткая метка, отличающая обложки визуально для разных песен */
+    var label=(String(seed||'MUSIC').replace(/\.mp3$/i,'').trim().slice(0,22)||'MUSIC').toUpperCase();
+    g.fillStyle='rgba(255,239,220,.82)'; g.font='600 19px sans-serif'; g.textAlign='left';
+    g.fillText(label,30,548);
+    g.fillStyle='rgba(255,145,45,.85)'; g.fillRect(30,566,70+(h%180),4);
     return new Promise(function(res){ c.toBlob(function(b){res(b);},'image/png'); });
   }
 
@@ -818,7 +851,7 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
       detach();
       if(!raf) raf=requestAnimationFrame(loop);
     }
-    if(pr&&pr.then) pr.then(ok).catch(function(){ elHint.classList.add('on'); attach(); });
+    if(pr&&pr.then) pr.then(ok).catch(function(){ elHint.classList.remove('on'); attach(); });
     else ok();
   }
   var evs=['pointerdown','touchstart','keydown','click'];
@@ -864,7 +897,8 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
   }
 
   function show(info){
-    return (info.cover ? Promise.resolve(info.cover) : fallbackCover(info.artist+info.title)).then(function(cb){
+    /* Генерируем собственную чёрно-оранжевую обложку для каждого трека. */
+    return fallbackCover(info.artist+' — '+info.title).then(function(cb){
       var cu=URL.createObjectURL(cb); objUrls.push(cu);
       return loadImg(cu).then(function(im){ return {im:im,url:cu}; }, function(){
         return fallbackCover(info.title).then(function(fb){ var u=URL.createObjectURL(fb); objUrls.push(u); return loadImg(u).then(function(im){return {im:im,url:u};}); });
@@ -914,8 +948,8 @@ h1 .gradient{background:linear-gradient(100deg,#fff0d8 0%,#ffb56b 42%,#e96b37 90
           elHint.classList.remove('on');
           if(!raf) raf = requestAnimationFrame(loop);
         }).catch(function(){
-          /* Браузер может блокировать звук до первого взаимодействия пользователя. */
-          elHint.classList.add('on');
+          /* Автозапуск запрошен; если браузер блокирует звук, ждём любое взаимодействие со страницей, не нажатие на обложку. */
+          elHint.classList.remove('on');
           attach();
         });
       } else {
