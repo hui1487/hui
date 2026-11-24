@@ -714,6 +714,166 @@ html.ld-reveal .footer:not(.ld-wait){animation:ldFade 1.2s 1.6s ease-out backwar
   html.ld-reveal .service-card,html.ld-reveal .footer,.ld-in{animation:ldFade .5s ease-out backwards!important}
 }
 
+
+/* ===== NFT Gifts under Starsgram ===== */
+.nft-gifts{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(160,210,255,.18);
+}
+.nft-gifts-title{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  color:#a8c8e0;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.nft-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+@media(max-width:360px){
+  .nft-grid{grid-template-columns:1fr}
+}
+.nft-item{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+.nft-bubble{
+  position:relative;
+  isolation:isolate;
+  width:100%;
+  aspect-ratio:1;
+  max-width:160px;
+  margin:0 auto;
+  border-radius:28px;
+  overflow:hidden;
+  border:1px solid rgba(160,210,255,.35);
+  background:linear-gradient(145deg,rgba(100,180,255,.12),rgba(10,20,40,.55));
+  box-shadow:
+    0 12px 32px rgba(0,30,70,.28),
+    inset 0 1px rgba(255,255,255,.28),
+    inset 0 0 20px rgba(126,200,255,.06);
+  backdrop-filter:blur(18px) saturate(1.35);
+  -webkit-backdrop-filter:blur(18px) saturate(1.35);
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+}
+.nft-bubble:before{
+  content:"";
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 15%,rgba(220,240,255,.22),transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 80%,rgba(100,180,255,.12),transparent 50%);
+}
+.nft-bubble img{
+  position:relative;z-index:1;
+  display:block;width:100%;height:100%;
+  object-fit:contain;padding:10px;
+  border-radius:18px;
+  filter:drop-shadow(0 6px 14px rgba(0,20,50,.35));
+}
+.nft-price{
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:-.2px;
+  color:#e8f4ff;
+  text-align:center;
+  padding:6px 10px;
+  border-radius:999px;
+  background:linear-gradient(135deg,rgba(100,180,255,.2),rgba(60,120,200,.12));
+  border:1px solid rgba(160,210,255,.3);
+  box-shadow:inset 0 1px rgba(255,255,255,.15);
+  white-space:nowrap;
+}
+.nft-name{
+  font-size:11px;
+  font-weight:650;
+  color:#8aa8c8;
+  text-align:center;
+  line-height:1.3;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media(hover:hover){
+  .nft-bubble:hover{
+    transform:translateY(-3px);
+    border-color:rgba(160,210,255,.55);
+    box-shadow:0 16px 40px rgba(0,40,100,.35),inset 0 1px rgba(255,255,255,.35);
+  }
+}
+
+/* Admin controls — hidden by default */
+.nft-admin{display:none}
+html.nft-admin-on .nft-admin{display:block}
+.nft-admin-panel{
+  margin-top:14px;
+  padding:12px;
+  border-radius:16px;
+  border:1px dashed rgba(160,210,255,.4);
+  background:rgba(20,40,70,.35);
+  backdrop-filter:blur(12px);
+}
+.nft-admin-panel h4{
+  font-size:12px;font-weight:800;color:#9ad7ff;
+  letter-spacing:.5px;margin-bottom:10px;
+}
+.nft-admin-row{
+  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;align-items:center;
+}
+.nft-admin-row input,.nft-admin-row button{
+  font:inherit;font-size:12px;border-radius:10px;padding:8px 10px;
+  border:1px solid rgba(160,210,255,.3);
+  background:rgba(10,20,40,.6);color:#e8f4ff;
+}
+.nft-admin-row input{flex:1;min-width:100px}
+.nft-admin-row button{
+  cursor:pointer;font-weight:700;
+  background:linear-gradient(135deg,rgba(100,180,255,.35),rgba(50,110,180,.25));
+  transition:filter .2s;
+}
+.nft-admin-row button:hover{filter:brightness(1.15)}
+.nft-admin-row button.danger{
+  background:linear-gradient(135deg,rgba(220,80,80,.35),rgba(140,40,40,.25));
+  border-color:rgba(255,120,120,.35);
+}
+.nft-item-admin{
+  position:absolute;top:6px;right:6px;z-index:3;
+  display:none;gap:4px;
+}
+html.nft-admin-on .nft-item-admin{display:flex}
+.nft-item-admin button{
+  width:26px;height:26px;border-radius:8px;border:none;
+  background:rgba(10,20,40,.75);color:#e8f4ff;
+  font-size:12px;cursor:pointer;backdrop-filter:blur(8px);
+  border:1px solid rgba(160,210,255,.3);
+}
+.nft-item-admin button:hover{background:rgba(40,80,140,.85)}
+.nft-export{
+  margin-top:8px;width:100%;
+  font-size:11px;padding:8px;border-radius:10px;
+  border:1px solid rgba(160,210,255,.25);
+  background:rgba(10,20,40,.5);color:#a8c8e0;
+  cursor:pointer;font-weight:650;
+}
+.nft-export:hover{color:#e8f4ff;border-color:rgba(160,210,255,.45)}
+
+.nft-bubble{display:block;text-decoration:none;color:inherit;cursor:pointer}
+.nft-price{display:inline-block;text-decoration:none;cursor:pointer;transition:filter .2s,transform .2s}
+.nft-price:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.nft-item-admin button{pointer-events:auto}
+
+
 </style>
 </head>
 <body>
@@ -956,6 +1116,30 @@ html.ld-reveal .footer:not(.ld-wait){animation:ldFade 1.2s 1.6s ease-out backwar
       <a class="service-link" href="https://t.me/starsgram_official_bot?start=ref_1030028355" target="_blank" rel="noopener noreferrer">
         <span>Получить</span><span class="arrow">↗</span>
       </a>
+
+      <div class="nft-gifts" id="nftGifts">
+        <div class="nft-gifts-title">
+          <span>NFT Подарки</span>
+        </div>
+        <div class="nft-grid" id="nftGrid"></div>
+        <div class="nft-admin">
+          <div class="nft-admin-panel">
+            <h4>Админ · управление подарками</h4>
+            <div class="nft-admin-row">
+              <input type="text" id="nftName" placeholder="Название" />
+              <input type="text" id="nftUrl" placeholder="URL картинки" />
+              <input type="text" id="nftPrice" placeholder="Цена (руб)" style="max-width:110px" />
+            </div>
+            <div class="nft-admin-row">
+              <input type="text" id="nftLink" placeholder="Ссылка (t.me/...)" />
+              <button type="button" id="nftAddBtn">Добавить</button>
+            </div>
+            <button type="button" class="nft-export" id="nftExport">Экспорт JSON (для обновления в репо)</button>
+            <button type="button" class="nft-export" id="nftReset" style="margin-top:6px">Сбросить к дефолту</button>
+          </div>
+        </div>
+      </div>
+
     </article>
   </section>
   <footer class="footer"><span>Вся информация и политика конфедициальности подтверждена мною ведь я знаю что ты и так со всем согласен и никто тебя впринципе слушать не будет © 2026™</span></footer>
@@ -1418,5 +1602,185 @@ html.ld-reveal .footer:not(.ld-wait){animation:ldFade 1.2s 1.6s ease-out backwar
 })();
 
 </script>
+
+<script>
+(function(){
+  /* ===== NFT Gifts ===== */
+  var STORAGE_KEY = 'starsgram_nft_gifts_v2';
+  var ADMIN_KEY = 'starsgram_nft_admin';
+  /* секрет: открой страницу с ?admin=starsgram2026 или #admin=starsgram2026 */
+  var ADMIN_SECRET = 'MTAT24eRgbqkDQcAsGePxgvpbjF99_cd';
+
+  var DEFAULT_GIFTS = [
+    {
+      id: 'jolly-chimp',
+      name: 'Jolly Chimp',
+      url: 'https://storage.googleapis.com/starsgram/gifts/JollyChimp-78153.webp',
+      price: 2050,
+      link: 'https://t.me/starsgram_nft_bot?startapp=gift_JollyChimp-78153'
+    },
+    {
+      id: 'easter-egg',
+      name: 'Easter Egg',
+      url: 'https://storage.googleapis.com/starsgram/gifts/EasterEgg-62780.webp',
+      price: 999,
+      link: 'https://t.me/starsgram_nft_bot?startapp=gift_EasterEgg-62780'
+    }
+  ];
+
+  function loadGifts(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    }catch(e){}
+    return DEFAULT_GIFTS.map(function(g){ return Object.assign({}, g); });
+  }
+  function saveGifts(list){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+  }
+
+  function isAdmin(){
+    try{
+      if(localStorage.getItem(ADMIN_KEY) === '1') return true;
+    }catch(e){}
+    var q = location.search || '';
+    var h = location.hash || '';
+    if(q.indexOf('admin=' + ADMIN_SECRET) !== -1 || h.indexOf('admin=' + ADMIN_SECRET) !== -1){
+      try{ localStorage.setItem(ADMIN_KEY, '1'); }catch(e){}
+      /* clean URL without reload noise */
+      try{
+        if(history.replaceState){
+          var u = new URL(location.href);
+          u.searchParams.delete('admin');
+          if(u.hash.indexOf('admin=') !== -1) u.hash = '';
+          history.replaceState(null, '', u.pathname + u.search + u.hash);
+        }
+      }catch(e){}
+      return true;
+    }
+    return false;
+  }
+
+  function fmtPrice(n){
+    var x = Number(n);
+    if(!isFinite(x)) return String(n);
+    return x.toLocaleString('ru-RU') + ' ₽';
+  }
+
+  var gifts = loadGifts();
+  var grid = document.getElementById('nftGrid');
+  if(!grid) return;
+
+  function render(){
+    grid.innerHTML = '';
+    gifts.forEach(function(g, idx){
+      var item = document.createElement('div');
+      item.className = 'nft-item';
+      var href = (g.link || '#').replace(/"/g,'&quot;');
+      var openAttr = g.link ? ' target="_blank" rel="noopener noreferrer"' : '';
+      item.innerHTML =
+        '<a class="nft-bubble" href="' + href + '"' + openAttr + '>' +
+          '<img src="' + g.url.replace(/"/g,'&quot;') + '" alt="' + (g.name||'NFT').replace(/"/g,'&quot;') + '" loading="lazy">' +
+          '<div class="nft-item-admin">' +
+            '<button type="button" title="Изменить" data-act="edit" data-i="' + idx + '">✎</button>' +
+            '<button type="button" title="Удалить" data-act="del" data-i="' + idx + '">×</button>' +
+          '</div>' +
+        '</a>' +
+        (g.name ? '<div class="nft-name">' + g.name.replace(/</g,'&lt;') + '</div>' : '') +
+        '<a class="nft-price" href="' + href + '"' + openAttr + '>' + fmtPrice(g.price) + '</a>';
+      grid.appendChild(item);
+    });
+  }
+
+  function enableAdminUI(){
+    document.documentElement.classList.add('nft-admin-on');
+    grid.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-act]');
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var i = +btn.getAttribute('data-i');
+      var act = btn.getAttribute('data-act');
+      if(act === 'del'){
+        if(!confirm('Удалить «' + (gifts[i] && gifts[i].name) + '»?')) return;
+        gifts.splice(i, 1);
+        saveGifts(gifts);
+        render();
+      } else if(act === 'edit'){
+        var g = gifts[i];
+        if(!g) return;
+        var np = prompt('Новая цена (руб) для «' + g.name + '»:', g.price);
+        if(np === null) return;
+        var n = parseInt(String(np).replace(/\s/g,''), 10);
+        if(!isFinite(n) || n < 0){ alert('Некорректная цена'); return; }
+        g.price = n;
+        var nn = prompt('Название (оставьте как есть):', g.name);
+        if(nn !== null && nn.trim()) g.name = nn.trim();
+        var nl = prompt('Ссылка на покупку (оставьте как есть):', g.link || '');
+        if(nl !== null) g.link = nl.trim();
+        saveGifts(gifts);
+        render();
+      }
+    });
+
+    var addBtn = document.getElementById('nftAddBtn');
+    if(addBtn){
+      addBtn.addEventListener('click', function(){
+        var name = (document.getElementById('nftName').value || '').trim();
+        var url = (document.getElementById('nftUrl').value || '').trim();
+        var link = (document.getElementById('nftLink').value || '').trim();
+        var price = parseInt(String(document.getElementById('nftPrice').value || '').replace(/\s/g,''), 10);
+        if(!url){ alert('Нужен URL картинки'); return; }
+        if(!isFinite(price) || price < 0){ alert('Нужна цена'); return; }
+        if(!link){ alert('Нужна ссылка на покупку'); return; }
+        gifts.push({
+          id: 'g' + Date.now(),
+          name: name || 'Подарок',
+          url: url,
+          price: price,
+          link: link
+        });
+        saveGifts(gifts);
+        document.getElementById('nftName').value = '';
+        document.getElementById('nftUrl').value = '';
+        document.getElementById('nftPrice').value = '';
+        document.getElementById('nftLink').value = '';
+        render();
+      });
+    }
+    var exp = document.getElementById('nftExport');
+    if(exp){
+      exp.addEventListener('click', function(){
+        var json = JSON.stringify(gifts, null, 2);
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(json).then(function(){
+            alert('JSON скопирован в буфер. Вставь в DEFAULT_GIFTS в index.html и закоммить в GitHub.');
+          }).catch(function(){
+            prompt('Скопируй JSON:', json);
+          });
+        } else {
+          prompt('Скопируй JSON:', json);
+        }
+      });
+    }
+    var reset = document.getElementById('nftReset');
+    if(reset){
+      reset.addEventListener('click', function(){
+        if(!confirm('Сбросить список к встроенному дефолту?')) return;
+        gifts = DEFAULT_GIFTS.map(function(g){ return Object.assign({}, g); });
+        try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+        render();
+      });
+    }
+  }
+
+  render();
+  if(isAdmin()) enableAdminUI();
+})();
+</script>
+
 </body>
 </html>
