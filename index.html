@@ -747,9 +747,13 @@ html.ld-reveal .footer:not(.ld-wait){animation:ldFade 1.2s 1.6s ease-out backwar
   flex-direction:column;
   align-items:center;
   gap:8px;
+  min-width:0;
+  width:100%;
+  box-sizing:border-box;
 }
 .nft-bubble{
   position:relative;
+  box-sizing:border-box;
   isolation:isolate;
   display:block;
   text-decoration:none;
@@ -818,6 +822,10 @@ html.ld-reveal .footer:not(.ld-wait){animation:ldFade 1.2s 1.6s ease-out backwar
 }
 .nft-price{
   display:inline-block;
+  box-sizing:border-box;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
   font-size:13px;
   font-weight:800;
   letter-spacing:-.2px;
@@ -835,6 +843,9 @@ html.ld-reveal .footer:not(.ld-wait){animation:ldFade 1.2s 1.6s ease-out backwar
 }
 .nft-price:hover{filter:brightness(1.12);transform:translateY(-1px)}
 .nft-name{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
   font-size:11px;
   font-weight:650;
   color:#8aa8c8;
