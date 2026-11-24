@@ -1176,33 +1176,32 @@ html.nft-admin-on .nft-item-admin{display:flex}
         <div class="nft-grid" id="nftGrid"></div>
         <div class="nft-admin">
           <div class="nft-admin-panel">
-            <h4>Админ · управление подарками</h4>
+            <h4>❄ Админ-панель подарков</h4>
+            <p style="font-size:12px;color:#9bb7d3;line-height:1.55;margin:-3px 0 12px">Добавляй новые подарки или выбирай «Изменить» на карточке. После каждого сохранения готовый HTML автоматически скачается.</p>
             <div class="nft-admin-row">
-              <input type="text" id="nftName" placeholder="Название" />
-              <input type="text" id="nftPrice" placeholder="Цена (руб)" style="max-width:110px" />
+              <input type="text" id="nftName" placeholder="Название подарка" />
+              <input type="number" min="0" step="1" id="nftPrice" placeholder="Цена (₽)" style="max-width:130px" />
             </div>
             <div class="nft-admin-row">
-              <input type="text" id="nftUrl" placeholder="URL картинки (или загрузи файл ниже)" />
+              <input type="url" id="nftUrl" placeholder="Ссылка на изображение (необязательно, если загружаешь файл)" />
             </div>
             <div class="nft-admin-row">
               <input type="file" id="nftFile" accept="image/*" />
             </div>
             <div class="nft-admin-row">
-              <input type="text" id="nftLink" placeholder="Ссылка на покупку (t.me/...)" />
+              <input type="url" id="nftLink" placeholder="Ссылка на покупку (https://t.me/...)" />
             </div>
             <div class="nft-admin-row">
-              <button type="button" id="nftAddBtn">Добавить в список</button>
-            </div>
-            <div class="nft-admin-row" style="margin-top:10px;border-top:1px solid rgba(160,210,255,.15);padding-top:10px">
-              <input type="text" id="nftRepo" placeholder="owner/repo" value="hui1487/hui" />
+              <label class="chk"><input type="checkbox" id="nftSold"> Уже продан</label>
             </div>
             <div class="nft-admin-row">
-              <input type="password" id="nftToken" placeholder="GitHub token (repo scope)" autocomplete="off" />
+              <button type="button" id="nftAddBtn">＋ Добавить подарок</button>
+              <button type="button" id="nftCancelBtn">Отмена</button>
             </div>
-            <div class="nft-admin-row">
-              <button type="button" class="primary" id="nftApplyBtn">Применить на сайт</button>
+            <div class="nft-admin-row" style="border-top:1px solid rgba(160,210,255,.15);padding-top:12px;margin-top:10px">
+              <button type="button" class="primary" id="nftExportBtn">⬇ Скачать готовый HTML</button>
             </div>
-            <div class="nft-admin-status" id="nftStatus"></div>
+            <div class="nft-admin-status" id="nftStatus" aria-live="polite"></div>
           </div>
         </div>
       </div>
@@ -1670,296 +1669,179 @@ html.nft-admin-on .nft-item-admin{display:flex}
 
 </script>
 
+<script id="gift-data" type="application/json">[{"id":"jolly-chimp","name":"Jolly Chimp","url":"https://storage.googleapis.com/starsgram/gifts/JollyChimp-78153.webp","price":2050,"link":"https://t.me/starsgram_nft_bot?startapp=gift_JollyChimp-78153","sold":false},{"id":"easter-egg","name":"Easter Egg","url":"https://storage.googleapis.com/starsgram/gifts/EasterEgg-62780.webp","price":999,"link":"https://t.me/starsgram_nft_bot?startapp=gift_EasterEgg-62780","sold":false}]</script>
 <script>
 (function(){
+  'use strict';
   var ADMIN_KEY = 'starsgram_nft_admin';
   var ADMIN_SECRET = 'MTAT24eRgbqkDQcAsGePxgvpbjF99_cd';
-  var TOKEN_KEY = 'starsgram_nft_gh_token';
-  var REPO_KEY = 'starsgram_nft_gh_repo';
-  var GIFTS_FILE = 'gifts.json';
-  var DEFAULT_GIFTS = [
-    {
-      id: 'jolly-chimp',
-      name: 'Jolly Chimp',
-      url: 'https://storage.googleapis.com/starsgram/gifts/JollyChimp-78153.webp',
-      price: 2050,
-      link: 'https://t.me/starsgram_nft_bot?startapp=gift_JollyChimp-78153',
-      sold: false
-    },
-    {
-      id: 'easter-egg',
-      name: 'Easter Egg',
-      url: 'https://storage.googleapis.com/starsgram/gifts/EasterEgg-62780.webp',
-      price: 999,
-      link: 'https://t.me/starsgram_nft_bot?startapp=gift_EasterEgg-62780',
-      sold: false
-    }
-  ];
-
-  var gifts = DEFAULT_GIFTS.map(function(g){ return Object.assign({}, g); });
+  var dataNode = document.getElementById('gift-data');
   var grid = document.getElementById('nftGrid');
-  if(!grid) return;
+  if(!grid || !dataNode) return;
+
+  var gifts = [];
+  try { gifts = JSON.parse(dataNode.textContent || '[]'); } catch(e) { gifts = []; }
+  if(!Array.isArray(gifts)) gifts = [];
+  var editingId = null;
 
   function isAdmin(){
-    try{
-      if(localStorage.getItem(ADMIN_KEY) === '1') return true;
-    }catch(e){}
-    var q = location.search || '';
-    var h = location.hash || '';
-    if(q.indexOf('admin=' + ADMIN_SECRET) !== -1 || h.indexOf('admin=' + ADMIN_SECRET) !== -1){
-      try{ localStorage.setItem(ADMIN_KEY, '1'); }catch(e){}
-      try{
-        if(history.replaceState){
-          var u = new URL(location.href);
-          u.searchParams.delete('admin');
-          if(u.hash.indexOf('admin=') !== -1) u.hash = '';
-          history.replaceState(null, '', u.pathname + u.search + u.hash);
-        }
-      }catch(e){}
+    try { if(localStorage.getItem(ADMIN_KEY) === '1') return true; } catch(e){}
+    var query = location.search || '';
+    var hash = location.hash || '';
+    if(query.indexOf('admin=' + ADMIN_SECRET) !== -1 || hash.indexOf('admin=' + ADMIN_SECRET) !== -1){
+      try { localStorage.setItem(ADMIN_KEY, '1'); } catch(e){}
+      try {
+        var u = new URL(location.href);
+        u.searchParams.delete('admin');
+        if(u.hash.indexOf('admin=') !== -1) u.hash = '';
+        history.replaceState(null, '', u.pathname + u.search + u.hash);
+      } catch(e){}
       return true;
     }
     return false;
   }
-
-  function fmtPrice(n){
-    var x = Number(n);
-    if(!isFinite(x)) return String(n);
-    return x.toLocaleString('ru-RU') + ' ₽';
+  function esc(value){
+    return String(value == null ? '' : value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-
-  function esc(s){
-    return String(s == null ? '' : s)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/"/g,'&quot;');
+  function priceText(value){
+    var n = Number(value);
+    return (isFinite(n) ? n.toLocaleString('ru-RU') : '0') + ' ₽';
   }
-
-  function setStatus(msg, kind){
+  function status(message, kind){
     var el = document.getElementById('nftStatus');
     if(!el) return;
-    el.textContent = msg || '';
+    el.textContent = message || '';
     el.className = 'nft-admin-status' + (kind ? ' ' + kind : '');
   }
-
   function render(){
     grid.innerHTML = '';
-    gifts.forEach(function(g, idx){
+    gifts.forEach(function(g, index){
       var item = document.createElement('div');
       item.className = 'nft-item' + (g.sold ? ' is-sold' : '');
-      var href = esc(g.link || '#');
-      var openAttr = g.link ? ' target="_blank" rel="noopener noreferrer"' : '';
+      var href = g.link ? esc(g.link) : '#';
+      var open = g.link ? ' target="_blank" rel="noopener noreferrer"' : '';
       var ribbon = g.sold ? '<div class="nft-ribbon"><span>ПРОДАНО</span></div>' : '';
+      var adminButtons = isAdmin()
+        ? '<div class="nft-item-admin">' +
+            '<button type="button" title="Продан / в продаже" data-act="sold" data-id="' + esc(g.id) + '">' + (g.sold ? '↩' : '✓') + '</button>' +
+            '<button type="button" title="Изменить" data-act="edit" data-id="' + esc(g.id) + '">✎</button>' +
+            '<button type="button" title="Удалить" data-act="del" data-id="' + esc(g.id) + '">×</button>' +
+          '</div>' : '';
       item.innerHTML =
-        '<a class="nft-bubble" href="' + href + '"' + openAttr + '>' +
-          '<img src="' + esc(g.url) + '" alt="' + esc(g.name || 'NFT') + '" loading="lazy">' +
-          ribbon +
-          '<div class="nft-item-admin">' +
-            '<button type="button" class="sold-btn" title="Продан / в продаже" data-act="sold" data-i="' + idx + '">' + (g.sold ? '↩' : '✓') + '</button>' +
-            '<button type="button" title="Изменить" data-act="edit" data-i="' + idx + '">✎</button>' +
-            '<button type="button" title="Удалить" data-act="del" data-i="' + idx + '">×</button>' +
-          '</div>' +
+        '<a class="nft-bubble" href="' + href + '"' + open + '>' +
+          (g.url ? '<img src="' + esc(g.url) + '" alt="' + esc(g.name || 'Подарок') + '" loading="lazy">' : '') +
+          ribbon + adminButtons +
         '</a>' +
         (g.name ? '<div class="nft-name">' + esc(g.name) + '</div>' : '') +
-        '<a class="nft-price" href="' + href + '"' + openAttr + '>' + fmtPrice(g.price) + '</a>';
+        '<a class="nft-price" href="' + href + '"' + open + '>' + priceText(g.price) + '</a>';
       grid.appendChild(item);
     });
   }
-
-  function loadRemote(){
-    var url = GIFTS_FILE + '?t=' + Date.now();
-    return fetch(url, { cache: 'no-store' })
-      .then(function(r){
-        if(!r.ok) throw new Error('no gifts.json');
-        return r.json();
-      })
-      .then(function(data){
-        if(Array.isArray(data) && data.length){
-          gifts = data.map(function(g){
-            return {
-              id: g.id || ('g' + Date.now()),
-              name: g.name || 'Подарок',
-              url: g.url || '',
-              price: Number(g.price) || 0,
-              link: g.link || '',
-              sold: !!g.sold
-            };
-          });
-        }
-      })
-      .catch(function(){});
-  }
-
-  function utf8ToB64(str){
-    return btoa(unescape(encodeURIComponent(str)));
-  }
-
-  function applyToSite(){
-    var tokenEl = document.getElementById('nftToken');
-    var repoEl = document.getElementById('nftRepo');
-    var token = (tokenEl && tokenEl.value || '').trim();
-    var repo = (repoEl && repoEl.value || '').trim();
-    if(!repo){ setStatus('Укажи owner/repo', 'err'); return; }
-    if(!token){ setStatus('Укажи GitHub token с правом repo', 'err'); return; }
-    try{
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(REPO_KEY, repo);
-    }catch(e){}
-
-    setStatus('Публикую…', '');
-    var apiBase = 'https://api.github.com/repos/' + repo + '/contents/' + GIFTS_FILE;
-    var body = JSON.stringify(gifts, null, 2);
-    var content = utf8ToB64(body);
-
-    fetch(apiBase, {
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': 'Bearer ' + token,
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    }).then(function(r){
-      if(r.status === 404) return null;
-      if(!r.ok) return r.json().then(function(j){ throw new Error((j && j.message) || ('HTTP ' + r.status)); });
-      return r.json();
-    }).then(function(existing){
-      var payload = {
-        message: 'update gifts',
-        content: content,
-        branch: 'main'
-      };
-      if(existing && existing.sha) payload.sha = existing.sha;
-      return fetch(apiBase, {
-        method: 'PUT',
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': 'Bearer ' + token,
-          'X-GitHub-Api-Version': '2022-11-28',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-    }).then(function(r){
-      return r.json().then(function(j){
-        if(!r.ok) throw new Error((j && j.message) || ('HTTP ' + r.status));
-        return j;
-      });
-    }).then(function(){
-      setStatus('Готово. Через 1–2 мин обновится у всех.', 'ok');
-    }).catch(function(err){
-      var msg = (err && err.message) || String(err);
-      if(/branch.*main/i.test(msg) || /Reference does not exist/i.test(msg)){
-        setStatus('Ошибка ветки main. Попробуй master или проверь репо.', 'err');
-      } else {
-        setStatus('Ошибка: ' + msg, 'err');
-      }
-    });
-  }
-
-  function readFileAsDataURL(file){
+  function readImage(file){
     return new Promise(function(resolve, reject){
-      var fr = new FileReader();
-      fr.onload = function(){ resolve(fr.result); };
-      fr.onerror = reject;
-      fr.readAsDataURL(file);
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(String(reader.result || '')); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   }
+  function clearForm(){
+    editingId = null;
+    ['nftName','nftPrice','nftUrl','nftLink','nftFile'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.value = '';
+    });
+    var sold = document.getElementById('nftSold'); if(sold) sold.checked = false;
+    var btn = document.getElementById('nftAddBtn'); if(btn) btn.textContent = '＋ Добавить подарок';
+  }
+  function downloadHtml(){
+    // Put the current gift list into the embedded data block in the exported page.
+    dataNode.textContent = JSON.stringify(gifts).replace(/</g, '\\u003c');
+    var output = '<!doctype html>\n' + document.documentElement.outerHTML;
+    var blob = new Blob([output], {type:'text/html;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'index_gifts_updated.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    status('Готово! HTML-файл с актуальными подарками скачан.', 'ok');
+  }
+  async function saveGift(){
+    var name = (document.getElementById('nftName').value || '').trim();
+    var priceRaw = document.getElementById('nftPrice').value;
+    var price = Number(priceRaw);
+    var imageUrl = (document.getElementById('nftUrl').value || '').trim();
+    var link = (document.getElementById('nftLink').value || '').trim();
+    var file = document.getElementById('nftFile').files[0];
+    var sold = !!document.getElementById('nftSold').checked;
 
-  function enableAdminUI(){
+    if(!name){ status('Введи название подарка.', 'err'); return; }
+    if(priceRaw === '' || !Number.isFinite(price) || price < 0){ status('Укажи корректную цену.', 'err'); return; }
+    if(file){
+      try { imageUrl = await readImage(file); }
+      catch(e){ status('Не удалось прочитать изображение.', 'err'); return; }
+    }
+    if(!imageUrl){ status('Добавь ссылку на картинку или выбери файл.', 'err'); return; }
+    if(link && !/^https?:\/\//i.test(link)){ status('Ссылка на покупку должна начинаться с https:// или http://', 'err'); return; }
+
+    if(editingId){
+      var target = gifts.find(function(g){ return String(g.id) === String(editingId); });
+      if(!target) return;
+      target.name = name; target.price = price; target.url = imageUrl; target.link = link; target.sold = sold;
+      status('Подарок обновлён. Формирую готовый HTML…', '');
+    } else {
+      gifts.push({id:'gift-' + Date.now(), name:name, price:price, url:imageUrl, link:link, sold:sold});
+      status('Подарок добавлен. Формирую готовый HTML…', '');
+    }
+    render();
+    clearForm();
+    downloadHtml();
+  }
+
+  if(isAdmin()){
     document.documentElement.classList.add('nft-admin-on');
-    try{
-      var t = localStorage.getItem(TOKEN_KEY);
-      var r = localStorage.getItem(REPO_KEY);
-      if(t && document.getElementById('nftToken')) document.getElementById('nftToken').value = t;
-      if(r && document.getElementById('nftRepo')) document.getElementById('nftRepo').value = r;
-    }catch(e){}
+    var add = document.getElementById('nftAddBtn');
+    if(add) add.addEventListener('click', saveGift);
+    var cancel = document.getElementById('nftCancelBtn');
+    if(cancel) cancel.addEventListener('click', function(){ clearForm(); status('Редактирование отменено.', ''); });
+    var exportBtn = document.getElementById('nftExportBtn');
+    if(exportBtn) exportBtn.addEventListener('click', downloadHtml);
 
-    grid.addEventListener('click', function(e){
-      var btn = e.target.closest('button[data-act]');
-      if(!btn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      var i = +btn.getAttribute('data-i');
-      var act = btn.getAttribute('data-act');
-      if(act === 'del'){
-        if(!confirm('Удалить «' + (gifts[i] && gifts[i].name) + '»?')) return;
-        gifts.splice(i, 1);
-        render();
-        setStatus('Удалено локально. Нажми «Применить на сайт».', '');
-      } else if(act === 'sold'){
-        if(!gifts[i]) return;
-        gifts[i].sold = !gifts[i].sold;
-        render();
-        setStatus(gifts[i].sold ? 'Помечено «ПРОДАНО». Нажми «Применить на сайт».' : 'Снова в продаже. Нажми «Применить на сайт».', '');
-      } else if(act === 'edit'){
-        var g = gifts[i];
-        if(!g) return;
-        var nn = prompt('Название:', g.name);
-        if(nn === null) return;
-        if(nn.trim()) g.name = nn.trim();
-        var np = prompt('Цена (руб):', g.price);
-        if(np === null) return;
-        var n = parseInt(String(np).replace(/\s/g,''), 10);
-        if(!isFinite(n) || n < 0){ alert('Некорректная цена'); return; }
-        g.price = n;
-        var nl = prompt('Ссылка на покупку:', g.link || '');
-        if(nl !== null) g.link = nl.trim();
-        var nu = prompt('URL картинки (пусто = без изменений):', '');
-        if(nu !== null && nu.trim()) g.url = nu.trim();
-        render();
-        setStatus('Изменено локально. Нажми «Применить на сайт».', '');
+    grid.addEventListener('click', function(event){
+      var button = event.target.closest('button[data-act]');
+      if(!button) return;
+      event.preventDefault(); event.stopPropagation();
+      var id = button.getAttribute('data-id');
+      var index = gifts.findIndex(function(g){ return String(g.id) === String(id); });
+      if(index < 0) return;
+      if(button.dataset.act === 'edit'){
+        var gift = gifts[index];
+        editingId = gift.id;
+        document.getElementById('nftName').value = gift.name || '';
+        document.getElementById('nftPrice').value = gift.price == null ? '' : gift.price;
+        document.getElementById('nftUrl').value = gift.url && !/^data:image\//i.test(gift.url) ? gift.url : '';
+        document.getElementById('nftLink').value = gift.link || '';
+        document.getElementById('nftSold').checked = !!gift.sold;
+        document.getElementById('nftFile').value = '';
+        document.getElementById('nftAddBtn').textContent = 'Сохранить изменения';
+        status('Редактируешь: ' + (gift.name || 'Подарок') + '. После сохранения скачается HTML.', '');
+        document.getElementById('nftName').focus();
+      } else if(button.dataset.act === 'del'){
+        if(!confirm('Удалить подарок «' + (gifts[index].name || 'Подарок') + '»?')) return;
+        gifts.splice(index, 1);
+        render(); downloadHtml();
+      } else if(button.dataset.act === 'sold'){
+        gifts[index].sold = !gifts[index].sold;
+        render(); downloadHtml();
       }
     });
-
-    var addBtn = document.getElementById('nftAddBtn');
-    if(addBtn){
-      addBtn.addEventListener('click', function(){
-        var name = (document.getElementById('nftName').value || '').trim();
-        var url = (document.getElementById('nftUrl').value || '').trim();
-        var link = (document.getElementById('nftLink').value || '').trim();
-        var price = parseInt(String(document.getElementById('nftPrice').value || '').replace(/\s/g,''), 10);
-        var fileInput = document.getElementById('nftFile');
-        var file = fileInput && fileInput.files && fileInput.files[0];
-
-        function pushGift(finalUrl){
-          if(!finalUrl){ alert('Нужна картинка: URL или файл'); return; }
-          if(!isFinite(price) || price < 0){ alert('Нужна цена'); return; }
-          if(!link){ alert('Нужна ссылка на покупку'); return; }
-          gifts.push({
-            id: 'g' + Date.now(),
-            name: name || 'Подарок',
-            url: finalUrl,
-            price: price,
-            link: link,
-            sold: false
-          });
-          document.getElementById('nftName').value = '';
-          document.getElementById('nftUrl').value = '';
-          document.getElementById('nftPrice').value = '';
-          document.getElementById('nftLink').value = '';
-          if(fileInput) fileInput.value = '';
-          render();
-          setStatus('Добавлено локально. Нажми «Применить на сайт».', '');
-        }
-
-        if(file){
-          if(file.size > 900 * 1024){
-            alert('Файл слишком большой (макс ~900 КБ). Сожми изображение или укажи URL.');
-            return;
-          }
-          readFileAsDataURL(file).then(pushGift).catch(function(){ alert('Не удалось прочитать файл'); });
-        } else {
-          pushGift(url);
-        }
-      });
-    }
-
-    var applyBtn = document.getElementById('nftApplyBtn');
-    if(applyBtn) applyBtn.addEventListener('click', applyToSite);
   }
 
-  loadRemote().then(function(){
-    render();
-    if(isAdmin()) enableAdminUI();
-  });
+  render();
+  // When the page is opened from a local file, a nearby gifts.json may not be accessible;
+  // the gifts embedded in this HTML remain the reliable source of truth.
 })();
 </script>
 
