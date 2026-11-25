@@ -1,0 +1,18 @@
+[
+  {
+    "id": "jolly-chimp",
+    "name": "Jolly Chimp",
+    "url": "https://storage.googleapis.com/starsgram/gifts/JollyChimp-78153.webp",
+    "price": 1800,
+    "link": "https://t.me/starsgram_nft_bot?startapp=gift_JollyChimp-78153",
+    "sold": false
+  },
+  {
+    "id": "easter-egg",
+    "name": "Easter Egg",
+    "url": "https://storage.googleapis.com/starsgram/gifts/EasterEgg-62780.webp",
+    "price": 999,
+    "link": "https://t.me/starsgram_nft_bot?startapp=gift_EasterEgg-62780",
+    "sold": false
+  }
+]
