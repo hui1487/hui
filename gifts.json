@@ -14,5 +14,13 @@
     "price": 750,
     "link": "https://t.me/starsgram_nft_bot?startapp=gift_EasterEgg-62780",
     "sold": false
+  },
+  {
+    "id": "g1795862320539",
+    "name": "Xmas Stocking",
+    "url": "https://storage.googleapis.com/starsgram/gifts/XmasStocking-118624.webp",
+    "price": 1666,
+    "link": "https://t.me/starsgram_nft_bot?startapp=gift_XmasStocking-118624",
+    "sold": false
   }
 ]
